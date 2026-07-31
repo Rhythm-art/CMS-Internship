@@ -69,3 +69,50 @@ const PORT1=process.env.PORT || 3000;
 app.listen(PORT1,()=>{
     console.log(`Server running on port ${PORT1}`)
 })
+
+
+
+// create crud operations 
+//create
+app.post("/students",(req,res)=>{
+    db.query(
+        "Insert INTO students(name, email,age) VALUES(?,?,?)",
+        {
+            req.body.name,
+            req,body,email,
+            req.body.age
+        }
+    )
+    res.status(201).json({
+        message:"student created"
+    })
+})
+
+// get students 
+app.get("/students",(req,res)=>{
+    const [students] = db.query(
+        "SELECT * FROM STUDENTS"
+    );
+    res.json(students)
+})
+
+
+// update the students 
+app.put("/students/:1",(req,res)=>{
+    db.query(
+        "UPDATE students SET name=? where id =?",
+        [
+            req.body.name,
+            req.params.id
+        ]
+    )
+    ///
+})
+
+//delete 
+app.delete("/students/:1",(req,res)=>{
+    "DELETE FROM students WHERE id=?",
+    [
+        req.params.id
+    ]
+})

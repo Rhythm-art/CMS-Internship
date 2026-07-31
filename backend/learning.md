@@ -11,8 +11,8 @@ welcome to about use page
 
 
  /// Routing 
- Routing is the process of how the application responds the client request through a spectific url or hppt method like /about , /services
- different route mehod 
+ Routing is the process of how the application responds the client request through a specific url or https method like /about , /services
+ different route method 
  Get  read data
  post create data
  put update the entire data
@@ -24,10 +24,10 @@ welcome to about use page
 
 /// assignment  
  // req(Request object)  
- it containd all the information send by the client
+ it contained all the information send by the client
  req.body
  req.params route parameters
- req.query query paramters
+ req.query query parameters
  req.headers
  req.method
  req.url
@@ -40,3 +40,4 @@ res.json() send Json
 res.status() send http status code 
 res.redirect() redirect or navigate to another pGE
 res.download() download file
+
