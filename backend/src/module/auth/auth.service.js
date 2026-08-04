@@ -1,42 +1,79 @@
+import { id } from "zod/v4/locales";
 import { prisma } from "../../config/database.js";
+import { hashPassword } from "../../utils/hash.js";
+import { generateAccessToken, generateRefreshToken } from "../../utils/jwt.js";
 
+export const regiserUser= async (userData)=>{
+    const {fullName, email,phone,password, role}=userData
+    
 
-export const registerUser = async ()=>{
-    const {name, email, password, role, phone} = req.body;
-
-//email and phone exists or not
+    //email nad phone exitisting
     const existingUser = await prisma.user.findFirst({
-        where: {
+        where:{
             OR: [
-                { email},
-                ...email(phone?[{ phone }]: [])
-            ]
+  { email },
+  ...(phone ? [{ phone }] : [])
+]
         }
+
     })
-    if(existingUser){
-        throw new Error("User with this email or phone already exists");
+    if (existingUser){
+        throw new Error(" email and phone already exist ")
     }
-    const hashedPassword = await hashPassword(password);
-    const newUser = await prisma.user.create(
+    const hashpassword = await hashPassword(password)
+    const newUser = await  prisma.user.create(
         {
-            data: {
-                name,
+            data:{
+                fullName,
                 email,
                 phone,
-                password: hashedPassword,
+                password:hashpassword,
                 role
-            },
-            select: {
-                id: true,
-                name: true,
-                email: true,
-                phone: true,
-                password: true,
-                role: true,
-                createdAt: true,
-                updatedAt: true
-            }
+   }   }),
+
+            
+            // select:{
+            //     id:true,
+            //     fullName:true,
+            //     email:true,
+            //     phone:true,
+            //     password:true,
+            //     role:true,
+            //     creaedAt:true,
+            //     updatedAt:true
+
+            // }
+
+           
         }
-    )
-    return newUser;
+        const payload={
+            id:user.id,
+            email:user.email,
+            role:user.role
+
+        }
+        const accesstoken= generateAccessToken(payload);
+        const refreshtoken=generateRefreshToken(payload)
+
+
+        await prisma.user.update({
+            where:{
+                id:user.id,
+            },
+            data:{
+                refreshtoken
+            }
+        })
+        
+    
+    return { newUser:{
+        id:user.id,
+        fullName:user.fullName,
+        email:user.email,
+        phone:user.phone,
+        role:user.role,
+        isActive:user.isActive
+    },
+    accesstoken,
+    refreshtoken
 }

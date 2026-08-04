@@ -1,16 +1,18 @@
 import express from "express"
+import authRoutes from "../module/auth/auth.routes.js"
 
-const routes = express.Router();
+const router = express.Router();
 
-routes.get("/health", (req, res) => {
+router.get("/health",(req,res)=>{
     return res.json({
-        message: "Clinic Management System",
-        success: true
+        message:"cilnic managemnet system",
+        success:true
     })
 })
+router.use("/auth",authRoutes)
 
 
 
 
 
-export default routes
+export default router

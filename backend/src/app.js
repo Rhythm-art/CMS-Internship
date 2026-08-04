@@ -1,20 +1,16 @@
 import express from "express"
-import routes from "./routes/index.js"
+import routes from "./routes/index.js";
 
 
 
 
+ const app =express();
 
-export const app = express();
+ app.use(express.json()) //(it is expree inbuilt middleware function)   // it is used to convert the http payload json into  javascript object to understand the req.body
 
-app.use(express.json())  // (It is expree inbuild midleware fucntion)  // It is use to convert the http payload json into javascript object to understand the req.body
-
-
-// api routes
-app.use("/api", routes)
+/// api routes
+app.use("/api",routes)
 
 
 
-
-
-export default app
+ export default app
