@@ -1,58 +1,84 @@
-import { errorResponse } from "../utils/response.js";
-import {UNAUTHORIZED,FORBIDDEN} from "../constans/statusCodes.js"
-import { verifyACCESSTOKEN } from "../utils/jwt.js";
-import { MESSAGES } from "../constans/messages.js";
+import prisma from "../config/database.js";
+import jwtService from "../utils/jwt.js";
+import responseHandler from "../utils/response.js";
 
+export const verifyToken = async (req, res, next) => {
+    try {
+        let token = req.cookies?.accessToken;
 
-
-export const authenticate = aysnc (req, res,next)=>{
-    try{
-        // get token from authrization header
-        const token = req.headers.authorization?.split(" ")[1];
-
-
-        if (!token){
-            return errorResponse(
-                res,new Error(MESSAGES.ACCESS_TOKEN_REQUIRED),
-                UNAUTHORIZED
-            )
+        if (!token && req.headers.authorization) {
+            token = req.headers.authorization.replace('Bearer ', '');
         }
-        const decoded = verifyACCESSTOKEN(token)
-        if (!decoded){
-            return errorResponse(
-                res, new Error (MESSAGES.Invalid_ACCESSTOKEN_TOKEN)
-            )
+
+        if (!token) {
+            return responseHandler.unauthorized(res, 'Authentication required');
         }
-        // get user from database 
-        const user = await  prisma.user.findUnique({
-            where:{
-                id:decoded.id
+
+        let decoded;
+        try {
+            decoded = jwtService.verifyAccessToken(token);
+        } catch (error) {
+            if (error.message === 'ACCESS_TOKEN_EXPIRED') {
+                return responseHandler.unauthorized(res, 'Access token expired');
             }
-        })
-         if (!user){
-            return errorResponse(res,new  Error(MESSAGES.USER_NOT_FOUND),
-            UNAUTHORIZED
-         )
-         }
-         if(!user.isActive){
-            return errorResponse(
-                res, new Error(MESSAGES.USER_NOT_FOUND),
-                FORBIDDEN
-            )
-         }
-         req.user = user;
-         next();
+            return responseHandler.unauthorized(res, 'Invalid access token');
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: decoded.id },
+        });
+
+        if (!user) {
+            return responseHandler.unauthorized(res, 'User not found');
+        }
+
+        if (!user.isActive) {
+            return responseHandler.unauthorized(res, 'Account is disabled');
+        }
+
+        // Update session last activity
+        await prisma.session.updateMany({
+            where: {
+                userId: user.id,
+                token: token,
+                isActive: true,
+            },
+            data: {
+                lastActivity: new Date(),
+            },
+        });
+
+        req.user = user;
+        next();
+    } catch (error) {
+        console.error('Auth middleware error:', error);
+        return responseHandler.serverError(res);
     }
-    catch(error){
-        console.log("erroro")
+};
 
-    }
-    
+export const authorize = (...allowedRoles) => {
+    return (req, res, next) => {
+        try {
+            const user = req.user;
+            if (!user) {
+                return responseHandler.unauthorized(res, 'User not authenticated');
+            }
 
-}
+            const hasRole = allowedRoles.some(role =>
+                role.toUpperCase() === user.role
+            );
 
+            if (!hasRole) {
+                return responseHandler.forbidden(res, 'Insufficient permissions');
+            }
 
+            next();
+        } catch (error) {
+            console.error('Authorization error:', error);
+            return responseHandler.serverError(res);
+        }
+    };
+};
 
-/// auhorization middleware 
-
-// validation Middleware
+export const isAdmin = authorize('ADMIN');
+export const isDoctorOrAdmin = authorize('DOCTOR', 'ADMIN');
