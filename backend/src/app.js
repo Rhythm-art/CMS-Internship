@@ -3,7 +3,7 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import router from './routes/index.js';
-import config from './config/env.js';
+import { ENV } from './config/env.js';
 
 const app = express();
 
@@ -29,9 +29,6 @@ app.use(cookieParser());
 
 // Authentication Routes
 app.use('/api',router);
-
-// // Admin Routes
-// app.use('/api/admin', adminRoutes);
 
 
 
