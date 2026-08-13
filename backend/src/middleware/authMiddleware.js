@@ -1,6 +1,10 @@
 import prisma from "../config/database.js";
 import jwtService from "../utils/jwt.js";
-import responseHandler from "../utils/response.js";
+import {
+  successResponse,
+  errorResponse,
+  serverErrorResponse,
+} from "../utils/response.js";
 
 export const verifyToken = async (req, res, next) => {
     try {
@@ -11,7 +15,7 @@ export const verifyToken = async (req, res, next) => {
         }
 
         if (!token) {
-            return responseHandler.unauthorized(res, 'Authentication required');
+            return serverErrorResponse.unauthorized(res, 'Authentication required');
         }
 
         let decoded;
@@ -19,9 +23,9 @@ export const verifyToken = async (req, res, next) => {
             decoded = jwtService.verifyAccessToken(token);
         } catch (error) {
             if (error.message === 'ACCESS_TOKEN_EXPIRED') {
-                return responseHandler.unauthorized(res, 'Access token expired');
+                return serverErrorResponse.unauthorized(res, 'Access token expired');
             }
-            return responseHandler.unauthorized(res, 'Invalid access token');
+            return serverErrorResponse.serverError(res, 'Invalid access token');
         }
 
         const user = await prisma.user.findUnique({
@@ -29,11 +33,11 @@ export const verifyToken = async (req, res, next) => {
         });
 
         if (!user) {
-            return responseHandler.unauthorized(res, 'User not found');
+            return serverErrorResponse.unauthorized(res, 'User not found');
         }
 
         if (!user.isActive) {
-            return responseHandler.unauthorized(res, 'Account is disabled');
+            return serverErrorResponse.unauthorized(res, 'Account is disabled');
         }
 
         // Update session last activity
@@ -52,7 +56,7 @@ export const verifyToken = async (req, res, next) => {
         next();
     } catch (error) {
         console.error('Auth middleware error:', error);
-        return responseHandler.serverError(res);
+        return serverErrorResponse.serverError(res);
     }
 };
 
@@ -61,7 +65,7 @@ export const authorize = (...allowedRoles) => {
         try {
             const user = req.user;
             if (!user) {
-                return responseHandler.unauthorized(res, 'User not authenticated');
+                return serverErrorResponse.unauthorized(res, 'User not authenticated');
             }
 
             const hasRole = allowedRoles.some(role =>
@@ -69,13 +73,13 @@ export const authorize = (...allowedRoles) => {
             );
 
             if (!hasRole) {
-                return responseHandler.forbidden(res, 'Insufficient permissions');
+                return serverErrorResponse.forbidden(res, 'Insufficient permissions');
             }
 
             next();
         } catch (error) {
             console.error('Authorization error:', error);
-            return responseHandler.serverError(res);
+            return serverErrorResponse.serverError(res);
         }
     };
 };

@@ -102,3 +102,14 @@ Response
    │
    ▼
 Client
+
+
+
+assignment 
+
+crup operation of patient
+//post
+// get all patient for staff
+// get with user-name (not id)(optional)
+// update the patient
+//delete patient
