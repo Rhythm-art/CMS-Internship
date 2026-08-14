@@ -46,7 +46,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({
         success: false,
         message: 'Internal server error',
-        error: config.NODE_ENV === 'development' ? err.message : undefined,
+        error: ENV.NODE_ENV === 'development' ? err.message : undefined,
     });
 });
 
