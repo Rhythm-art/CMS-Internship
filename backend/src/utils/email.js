@@ -226,3 +226,4 @@ export const sendWelcomeEmail = async (email, name) => {
 //     `;
 //     return sendEmail({ to: email, subject, html });
 // };
+

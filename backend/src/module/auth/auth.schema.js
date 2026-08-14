@@ -126,3 +126,4 @@ export const updateRoleSchema = z.object({
         invalid_type_error: 'Invalid role selected',
     }),
 });
+
