@@ -115,3 +115,5 @@ crup operation of patient
 //delete patient
 
 
+
+ multer ko barema pathera aaunu 
